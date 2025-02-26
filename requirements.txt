@@ -1,2 +1,9 @@
 Flask==2.3.2
-# Add additional RL libraries later (e.g., stable-baselines3, gym)
+requests==2.31.0
+beautifulsoup4==4.12.2
+yfinance==0.2.26
+pandas==1.5.3
+numpy==1.23.5
+stable-baselines3==1.7.0
+gym==0.26.2
+# or gymnasium==0.28.1 for newer versions
