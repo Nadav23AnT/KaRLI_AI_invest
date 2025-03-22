@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify
-# from flask_cors import CORS
+from flask_cors import CORS
 
 import mongo_utils
 from Enums.risk import RISK
 
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
 
 RISK_LEVELS = [risk.value for risk in RISK]
 
