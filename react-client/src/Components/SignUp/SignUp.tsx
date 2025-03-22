@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "./SignUp.css";
-
-const API_BASE_URL = "http://127.0.0.1:5000";
+import { API_BASE_URL } from '../../enums';
 
 interface RiskResponse {
     risks: string[];

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "./SignIn.css";
-
-const API_BASE_URL = "http://127.0.0.1:5000";
+import { API_BASE_URL } from '../../enums';
 
 export default function SignIn({ toggleForm, onSignInSuccess }: { toggleForm: () => void; onSignInSuccess: () => void }) {
     const [username, setUsername] = useState<string>("");

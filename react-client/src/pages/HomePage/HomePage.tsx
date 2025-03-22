@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./homePage.css";
+import { API_BASE_URL } from '../../enums';
 
 interface SummaryData {
     balance: number;
@@ -15,7 +16,7 @@ export default function HomePage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch("http://127.0.0.1:5000/summary")
+        fetch(`${API_BASE_URL}/summary`)
             .then((res) => res.json())
             .then((data) => {
                 setData(data);
@@ -28,7 +29,11 @@ export default function HomePage() {
     }, []);
 
     const handleStopTrading = () => {
-        fetch("http://127.0.0.1:5000/stop-trading", { method: "POST" })
+        fetch(`${API_BASE_URL}/stop-trading`,
+            { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+             })
             .then((res) => res.json())
             .then((updatedData) => {
                 if (data) {
