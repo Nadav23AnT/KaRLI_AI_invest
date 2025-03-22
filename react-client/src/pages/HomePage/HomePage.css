@@ -1,0 +1,79 @@
+/* homePage.css */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.section {
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.balance {
+    font-size: 20px;
+    color: green;
+}
+
+.profit {
+    font-size: 20px;
+}
+
+.profit.positive {
+    color: green;
+}
+
+.profit.negative {
+    color: red;
+}
+
+.last-trades {
+    list-style: none;
+    padding: 0;
+}
+
+.trade-item {
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.trade-profit {
+    color: green;
+}
+
+.trade-loss {
+    color: red;
+}
+
+.cash {
+    font-size: 20px;
+    color: blue;
+}
+
+.stop-button {
+    width: 100%;
+    padding: 12px;
+    background: red;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.stop-button:hover {
+    background: darkred;
+}
