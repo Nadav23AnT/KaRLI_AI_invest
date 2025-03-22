@@ -21,6 +21,24 @@ h1 {
     margin-bottom: 12px;
 }
 
+.status {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.status.active {
+    color: white;
+    background-color: green;
+}
+
+.status.stopped {
+    color: white;
+    background-color: red;
+}
+
 .balance {
     font-size: 20px;
     color: green;
