@@ -1,39 +1,58 @@
 import { useEffect, useState } from "react";
-import "./homePage.css";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from '../../enums';
+import "./homePage.css";
 
 interface SummaryData {
     balance: number;
     overallProfit: number;
     lastTrades: { id: number; amount: number; profitLoss: number }[];
     availableCash: number;
-    tradingStatus: string; // Added trading status
+    tradingStatus: string;
 }
 
 export default function HomePage() {
+    const navigate = useNavigate();
     const [data, setData] = useState<SummaryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    const username = localStorage.getItem("username");
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
 
+    // Redirect to login if not authenticated
     useEffect(() => {
-        fetch(`${API_BASE_URL}/summary`)
-            .then((res) => res.json())
-            .then((data) => {
-                setData(data);
-                setLoading(false);
-            })
-            .catch(() => {
-                setError("Failed to load data.");
-                setLoading(false);
-            });
-    }, []);
+        if (!isAuthenticated || !username) {
+            navigate("/");
+        }
+    }, [isAuthenticated, username, navigate]);
 
-    const handleStopTrading = () => {
-        fetch(`${API_BASE_URL}/stop-trading`,
-            { 
+    // Fetch summary data for the logged-in user
+    useEffect(() => {
+        if (isAuthenticated && username) {
+            fetch(`${API_BASE_URL}/summary`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-             })
+                body: JSON.stringify({ username })
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    setData(data);
+                    setLoading(false);
+                })
+                .catch(() => {
+                    setError("Failed to load data.");
+                    setLoading(false);
+                });
+        }
+    }, [isAuthenticated, username]);
+
+    const handleStopTrading = () => {
+        fetch(`${API_BASE_URL}/stop-trading`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username })
+        })
             .then((res) => res.json())
             .then((updatedData) => {
                 if (data) {
@@ -42,12 +61,14 @@ export default function HomePage() {
             });
     };
 
+    if (!isAuthenticated) return null; // Prevent rendering before redirect
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
     return (
         <div className="container">
-            <h1>Welcome to the Home Page!</h1>
+            <h1>Welcome, {username}!</h1>
 
             <div className="section">
                 <h2>Activity Status</h2>
