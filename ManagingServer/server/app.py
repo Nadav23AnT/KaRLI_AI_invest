@@ -9,6 +9,11 @@ CORS(app)
 
 RISK_LEVELS = [risk.value for risk in RISK]
 
+# Simulated user data (Replace with database)
+USER_DATA = {
+    "itai": {"balance": 10500.75, "overallProfit": 12.3, "availableCash": 2500.00, "tradingStatus": "Active"},
+    "jane_smith": {"balance": 8900.50, "overallProfit": 9.8, "availableCash": 1800.00, "tradingStatus": "Active"}
+}
 
 @app.route('/signUp', methods=['POST'])
 def sign_up():
@@ -37,10 +42,52 @@ def sign_in():
     return "username or password are incorrect", 401
 
 
+@app.route('/summary', methods=['POST'])
+def get_summary():
+    """
+    Fetch user-specific trading summary.
+    """
+    data = request.json
+    username = data.get("username")
+
+    if not username or username not in USER_DATA:
+        return jsonify({"error": "User not found" + username}), 404
+
+    user_summary = USER_DATA[username]
+
+    response = {
+        "balance": user_summary["balance"],
+        "overallProfit": user_summary["overallProfit"],
+        "lastTrades": [
+            {"id": 1, "amount": 500, "profitLoss": 5.2},
+            {"id": 2, "amount": 300, "profitLoss": -2.7},
+            {"id": 3, "amount": 200, "profitLoss": 1.8}
+        ],
+        "availableCash": user_summary["availableCash"],
+        "tradingStatus": user_summary["tradingStatus"]
+    }
+    return jsonify(response), 200
+
+@app.route('/stop-trading', methods=['POST'])
+def stop_trading():
+    """
+    Stop trading for a specific user.
+    """
+    data = request.json
+    username = data.get("username")
+
+    if not username or username not in USER_DATA:
+        return jsonify({"error": "User not found"}), 404
+
+    USER_DATA[username]["tradingStatus"] = "Stopped"
+    return jsonify({"message": "Trading has been stopped!", "tradingStatus": "Stopped"}), 200
+
+
 @app.route("/risks", methods=["GET"])
 def get_risk_levels():
     return jsonify({"risks": RISK_LEVELS})
 
 
 if __name__ == '__main__':
+    print("app is running!")
     app.run(debug=True, threaded=False)
