@@ -9,35 +9,49 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 import gym
 from typing import Dict, List, Tuple
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def calculate_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """Calculate technical indicators for a stock."""
+    # Get parameters from environment
+    rsi_period = int(os.getenv('RSI_PERIOD', 14))
+    macd_fast = int(os.getenv('MACD_FAST', 12))
+    macd_slow = int(os.getenv('MACD_SLOW', 26))
+    macd_signal = int(os.getenv('MACD_SIGNAL', 9))
+    bb_period = int(os.getenv('BB_PERIOD', 20))
+    bb_std = float(os.getenv('BB_STD', 2))
+    sma_short = int(os.getenv('SMA_SHORT', 20))
+    sma_long = int(os.getenv('SMA_LONG', 50))
+    
     # Price-based indicators
-    df['SMA_20'] = df['Close'].rolling(window=20).mean()
-    df['SMA_50'] = df['Close'].rolling(window=50).mean()
-    df['EMA_20'] = df['Close'].ewm(span=20).mean()
+    df['SMA_20'] = df['Close'].rolling(window=sma_short).mean()
+    df['SMA_50'] = df['Close'].rolling(window=sma_long).mean()
+    df['EMA_20'] = df['Close'].ewm(span=sma_short).mean()
     
     # RSI
     delta = df['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    gain = (delta.where(delta > 0, 0)).rolling(window=rsi_period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=rsi_period).mean()
     rs = gain / loss
     df['RSI'] = 100 - (100 / (1 + rs))
     
     # MACD
-    exp1 = df['Close'].ewm(span=12, adjust=False).mean()
-    exp2 = df['Close'].ewm(span=26, adjust=False).mean()
+    exp1 = df['Close'].ewm(span=macd_fast, adjust=False).mean()
+    exp2 = df['Close'].ewm(span=macd_slow, adjust=False).mean()
     df['MACD'] = exp1 - exp2
-    df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
+    df['Signal_Line'] = df['MACD'].ewm(span=macd_signal, adjust=False).mean()
     
     # Bollinger Bands
-    df['BB_middle'] = df['Close'].rolling(window=20).mean()
-    bb_std = df['Close'].rolling(window=20).std()
-    df['BB_upper'] = df['BB_middle'] + (bb_std * 2)
-    df['BB_lower'] = df['BB_middle'] - (bb_std * 2)
+    df['BB_middle'] = df['Close'].rolling(window=bb_period).mean()
+    bb_std_dev = df['Close'].rolling(window=bb_period).std()
+    df['BB_upper'] = df['BB_middle'] + (bb_std_dev * bb_std)
+    df['BB_lower'] = df['BB_middle'] - (bb_std_dev * bb_std)
     
     # Volume indicators
-    df['Volume_SMA'] = df['Volume'].rolling(window=20).mean()
+    df['Volume_SMA'] = df['Volume'].rolling(window=sma_short).mean()
     df['Volume_Ratio'] = df['Volume'] / df['Volume_SMA']
     
     return df
@@ -254,19 +268,28 @@ class MultiStockEnv(gym.Env):
 def train_model():
     print("Starting RL training...")
     
-    # 1) Select tickers
-    tickers = ["AAPL", "MSFT", "AMZN", "GOOGL", "TSLA",
-               "NVDA", "JNJ", "XOM", "JPM", "V", "PG", "HD", "BAC", "DIS",
-               "MA", "PFE", "CVX", "KO", "PEP", "ABBV", "COST", "MRK", "ABT", 
-               "T", "WMT", "ADBE", "NFLX", "CRM", "ORCL", "PYPL"]
+    # Get watchlist from environment
+    watchlist = os.getenv('WATCHLIST', '').split(',')
+    if not watchlist or watchlist[0] == '':
+        watchlist = ["AAPL", "MSFT", "AMZN", "GOOGL", "TSLA",
+                    "NVDA", "JNJ", "XOM", "JPM", "V", "PG", "HD", "BAC", "DIS",
+                    "MA", "PFE", "CVX", "KO", "PEP", "ABBV", "COST", "MRK", "ABT", 
+                    "T", "WMT", "ADBE", "NFLX", "CRM", "ORCL", "PYPL"]
+    
+    # Get model parameters from environment
+    learning_rate = float(os.getenv('LEARNING_RATE', 0.0003))
+    n_steps = int(os.getenv('N_STEPS', 2048))
+    batch_size = int(os.getenv('BATCH_SIZE', 64))
+    gamma = float(os.getenv('GAMMA', 0.99))
+    total_timesteps = int(os.getenv('TRAINING_EPOCHS', 100000))
     
     # 2) Fetch historical data
     end_date = datetime.date.today()
     start_date = end_date - datetime.timedelta(days=3650)
     
-    data_dict = {"dates": None, "prices": {}, "tickers": tickers, "indicators": {}}
+    data_dict = {"dates": None, "prices": {}, "tickers": watchlist, "indicators": {}}
     
-    for ticker in tickers:
+    for ticker in watchlist:
         df = yf.download(ticker, start=start_date, end=end_date, progress=False)
         if len(df) == 0:
             print(f"Warning: no data for {ticker}, skipping.")
@@ -288,34 +311,34 @@ def train_model():
                  "BB_upper", "BB_lower", "Volume_Ratio"]
     
     # 4) Get sentiment scores (placeholder for now)
-    sentiment_scores = {ticker: 0 for ticker in tickers}
+    sentiment_scores = {ticker: 0 for ticker in watchlist}
     
     # 5) Create environment with position sizing
     env = MultiStockEnv(
         data_dict, 
         indicators, 
         sentiment_scores,
-        position_sizing="risk_based",  # Try different strategies: "equal_weight", "kelly", "risk_based"
-        max_position_size=0.2  # Maximum 20% of portfolio in one stock
+        position_sizing="risk_based",
+        max_position_size=float(os.getenv('MAX_POSITION_SIZE', 0.2))
     )
     
     # 6) Wrap environment
     vec_env = DummyVecEnv([lambda: env])
     
-    # 7) Train model with adjusted hyperparameters for position sizing
+    # 7) Train model with parameters from environment
     model = PPO(
         "MlpPolicy",
         vec_env,
-        learning_rate=0.0003,
-        n_steps=2048,
-        batch_size=64,
+        learning_rate=learning_rate,
+        n_steps=n_steps,
+        batch_size=batch_size,
         n_epochs=10,
-        gamma=0.99,
+        gamma=gamma,
         verbose=1
     )
     
-    # Train for more steps for better performance
-    model.learn(total_timesteps=100000)
+    # Train for specified number of steps
+    model.learn(total_timesteps=total_timesteps)
     
     # 8) Save model
     os.makedirs("saved_models", exist_ok=True)

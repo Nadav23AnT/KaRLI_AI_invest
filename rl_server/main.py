@@ -8,14 +8,19 @@ import pytz
 from typing import Dict, List, Optional
 import yfinance as yf
 import pandas as pd
+from dotenv import load_dotenv
+import os
 
 from model.train import train_model
 from model.inference import get_recommendation
 from scraper.sentiment_scraper import get_sentiment_score
 
+# Load environment variables
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv('LOG_LEVEL', 'INFO')),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler('trading_bot.log'),
@@ -25,7 +30,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TradingBot:
-    def __init__(self, initial_balance: float = 100000.0):
+    def __init__(self, initial_balance: float = float(os.getenv('INITIAL_BALANCE', 100000.0))):
         self.initial_balance = initial_balance
         self.balance = initial_balance
         self.positions: Dict[str, int] = {}  # Current positions
@@ -34,15 +39,21 @@ class TradingBot:
         self.trading_thread = None
         self.last_update = None
         
-        # Trading parameters
-        self.max_position_size = 0.2  # Maximum 20% of portfolio in one stock
-        self.stop_loss = 0.02  # 2% stop loss
-        self.take_profit = 0.05  # 5% take profit
-        self.transaction_cost = 0.001  # 0.1% transaction cost
+        # Trading parameters from environment
+        self.max_position_size = float(os.getenv('MAX_POSITION_SIZE', 0.2))
+        self.stop_loss = float(os.getenv('STOP_LOSS', 0.02))
+        self.take_profit = float(os.getenv('TAKE_PROFIT', 0.05))
+        self.transaction_cost = float(os.getenv('TRANSACTION_COST', 0.001))
         
-        # Market hours (EST)
-        self.market_open = dt_time(9, 30)
-        self.market_close = dt_time(16, 0)
+        # Market hours from environment
+        self.market_open = dt_time(
+            int(os.getenv('MARKET_OPEN_HOUR', 9)),
+            int(os.getenv('MARKET_OPEN_MINUTE', 30))
+        )
+        self.market_close = dt_time(
+            int(os.getenv('MARKET_CLOSE_HOUR', 16)),
+            int(os.getenv('MARKET_CLOSE_MINUTE', 0))
+        )
         
         logger.info(f"TradingBot initialized with ${initial_balance:,.2f} initial balance")
     
@@ -263,4 +274,6 @@ def sentiment():
     return jsonify({"ticker": ticker, "sentiment_score": score})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    port = int(os.getenv('FLASK_PORT', 5001))
+    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    app.run(debug=debug, port=port)

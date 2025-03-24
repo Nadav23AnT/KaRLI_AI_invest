@@ -8,6 +8,10 @@ from alpha_vantage.news_sentiment import NewsSentiment
 import random
 from typing import Optional
 from functools import lru_cache
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Download required NLTK data
 try:
@@ -18,12 +22,21 @@ except LookupError:
 # Initialize sentiment analyzer
 sia = SentimentIntensityAnalyzer()
 
-# Get API key from environment variable
+# Get API keys from environment variables
 ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+TWITTER_API_KEY = os.getenv('TWITTER_API_KEY')
+TWITTER_API_SECRET = os.getenv('TWITTER_API_SECRET')
+TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN')
+TWITTER_ACCESS_TOKEN_SECRET = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+
+# Get cache settings from environment
+CACHE_SIZE = int(os.getenv('SENTIMENT_CACHE_SIZE', 100))
+UPDATE_INTERVAL = int(os.getenv('SENTIMENT_UPDATE_INTERVAL', 300))
+
 if not ALPHA_VANTAGE_API_KEY:
     print("Warning: ALPHA_VANTAGE_API_KEY not found in environment variables. Using mock data.")
 
-@lru_cache(maxsize=100)
+@lru_cache(maxsize=CACHE_SIZE)
 def get_sentiment_score(ticker: str) -> float:
     """
     Scrapes news for a given ticker and returns a sentiment score in [-1, 1].
@@ -72,16 +85,26 @@ def get_sentiment_score(ticker: str) -> float:
         # Alpha Vantage has rate limits, so we need to wait
         time.sleep(12)  # Alpha Vantage free tier limit is 5 calls per minute
 
-def get_sentiment_score(ticker: str) -> float:
-    # Multiple sources
-    alpha_score = get_alpha_vantage_sentiment(ticker)
-    yahoo_score = get_yahoo_finance_sentiment(ticker)
-    twitter_score = get_twitter_sentiment(ticker)
+def get_twitter_sentiment(ticker: str) -> float:
+    """Get sentiment from Twitter if API keys are available."""
+    if not all([TWITTER_API_KEY, TWITTER_API_SECRET, 
+                TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET]):
+        return 0.0
     
-    # Weighted average
-    return (0.4 * alpha_score + 0.3 * yahoo_score + 0.3 * twitter_score)
+    # TODO: Implement Twitter sentiment analysis
+    return 0.0
+
+def get_yahoo_finance_sentiment(ticker: str) -> float:
+    """Get sentiment from Yahoo Finance."""
+    # TODO: Implement Yahoo Finance sentiment analysis
+    return 0.0
+
+def get_alpha_vantage_sentiment(ticker: str) -> float:
+    """Get sentiment from Alpha Vantage."""
+    return get_sentiment_score(ticker)
 
 def analyze_article(item):
+    """Analyze sentiment of an article's title and content."""
     title_sentiment = sia.polarity_scores(item['title'])
     content_sentiment = sia.polarity_scores(item['content'])
     return 0.3 * title_sentiment['compound'] + 0.7 * content_sentiment['compound']
