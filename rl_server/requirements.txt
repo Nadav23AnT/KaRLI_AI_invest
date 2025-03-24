@@ -7,3 +7,5 @@ numpy==1.23.5
 stable-baselines3==1.7.0
 gym==0.26.2
 # or gymnasium==0.28.1 for newer versions
+nltk==3.8.1
+alpha_vantage==2.3.1
