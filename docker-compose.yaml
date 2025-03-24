@@ -20,9 +20,8 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile.dev
-    command: --host
-    ports:
-      - 5173:5173
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # Avoid overriding installed packages
+    # ports:
+    #   - 5173:5173
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules/  # Avoid overriding installed packages

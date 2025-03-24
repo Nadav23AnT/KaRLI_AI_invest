@@ -16,7 +16,7 @@ export default function HomePage() {
     const [data, setData] = useState<SummaryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     const username = localStorage.getItem("username");
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
 
@@ -94,8 +94,8 @@ export default function HomePage() {
                 <ul className="last-trades">
                     {data?.lastTrades.map((trade) => (
                         <li key={trade.id} className={`trade-item ${trade.profitLoss >= 0 ? "trade-profit" : "trade-loss"}`}>
-                            Trade #{trade.id}: ${trade.amount.toFixed(2)} | 
-                            {trade.profitLoss >= 0 ? " Profit " : " Loss "} 
+                            Trade #{trade.id}: ${trade.amount.toFixed(2)} |
+                            {trade.profitLoss >= 0 ? " Profit " : " Loss "}
                             {trade.profitLoss.toFixed(2)}%
                         </li>
                     ))}
