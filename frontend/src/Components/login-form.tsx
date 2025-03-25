@@ -19,9 +19,11 @@ import {
 import { loginFormSchema } from "@/schemas/login-form-schema"
 
 export function LoginForm({
+  error,
   onSumbit,
   ...props
 }: {
+  error: { type: string, message: string } | undefined,
   onSumbit: (values: z.infer<typeof loginFormSchema>) => void
 }) {
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -30,6 +32,11 @@ export function LoginForm({
       username: "",
       password: "",
     },
+    errors: error
+    ? {
+        password: error
+      }
+    : {},
   })
 
   return (

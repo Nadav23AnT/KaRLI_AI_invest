@@ -33,8 +33,8 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: localStorage.getItem("username"),
+    email: localStorage.getItem("username"),
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -158,9 +158,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <a href="/">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">KaRLI Investing</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
