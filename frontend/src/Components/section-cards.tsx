@@ -10,91 +10,111 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export function SectionCards() {
+export function SectionCards({
+  accountInfo,
+  cashBeingUsedForTrading,
+  portfolioHistory,
+}: {
+  accountInfo: {
+    account_blocked: boolean
+    balance_asof: string
+    cash: string
+    created_at: string
+    currency: string
+    equity: string
+    status: string
+    trading_blocked: boolean
+  }
+  cashBeingUsedForTrading: number
+  portfolioHistory: {
+    latest_equity: number
+    latest_profit_loss: number
+    latest_profit_loss_pct: number
+    latest_timestamp: number
+  }
+}) {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      {/* Equity & Cash Balance Card */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+          <CardDescription>Account Equity & Cash</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums">
+            {accountInfo.equity} {accountInfo.currency} 
+          </CardTitle>
+          <div className="text-lg text-muted-foreground">
+            Current Cash Balance: {accountInfo.cash} {accountInfo.currency}
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start text-sm">
+          <div className="text-muted-foreground">
+            Last updated: {accountInfo.balance_asof}
+          </div>
+        </CardFooter>
+      </Card>
+
+      {/* Cash Being Used for Trading */}
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Cash in Trading</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums">
+            {cashBeingUsedForTrading.toFixed(3)} {accountInfo.currency}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start text-sm">
+          <div className="text-muted-foreground">Current trading exposure</div>
+        </CardFooter>
+      </Card>
+
+      {/* Portfolio Profit/Loss */}
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Portfolio Profit/Loss</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums">
+            {portfolioHistory.latest_profit_loss.toFixed(2)} {accountInfo.currency} 
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
+              {portfolioHistory.latest_profit_loss >= 0 ? (
+                <>
+                  <IconTrendingUp />
+                  {portfolioHistory.latest_profit_loss_pct.toFixed(2)}%
+                </>
+              ) : (
+                <>
+                  <IconTrendingDown />
+                  {portfolioHistory.latest_profit_loss_pct.toFixed(2)}%
+                </>
+              )}
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <IconTrendingUp className="size-4" />
+        <CardFooter className="flex-col items-start text-sm">
+          <div className="text-muted-foreground">
+            Last update: {new Date(portfolioHistory.latest_timestamp * 1000).toLocaleString()}
+          </div>
+        </CardFooter>
+      </Card>
+
+      {/* Account Status */}
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Account Status</CardDescription>
+          <CardTitle
+            className={`text-2xl font-semibold tabular-nums ${
+              accountInfo.account_blocked || accountInfo.trading_blocked || accountInfo.status !== "ACTIVE" ? "text-red-500" : "text-green-500"
+            }`}
+          >
+            {accountInfo.account_blocked || accountInfo.trading_blocked || accountInfo.status !== "ACTIVE" ? "Not Active" : "Active"}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start text-sm">
+          <div className="text-muted-foreground">
+            Trading Blocked: {accountInfo.trading_blocked ? "Yes" : "No"}
           </div>
           <div className="text-muted-foreground">
-            Visitors for the last 6 months
+            Account Blocked: {accountInfo.account_blocked ? "Yes" : "No"}
           </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Customers</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period <IconTrendingDown className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Acquisition needs attention
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
         </CardFooter>
       </Card>
     </div>
