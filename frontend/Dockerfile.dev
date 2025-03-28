@@ -1,0 +1,10 @@
+# Run this as a dev container with a source code volume connected to /app
+
+FROM node:18 AS development
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install --frozen-lockfile
+
+CMD [ "npm", "run", "dev" ]
