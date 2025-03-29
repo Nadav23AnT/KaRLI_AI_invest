@@ -16,7 +16,13 @@ export const signupFormSchema = z.object({
   }),
   risk: z.string({
     required_error: "Please select risk level."
-  })
+  }),
+  brokerApiKey: z.string().min(1, {
+    message: "Broker API Key is required.",
+  }),
+  brokerApiSecret: z.string().min(1, {
+    message: "Broker API Secret is required.",
+  }),
 }).refine((data) => data.password === data.confirm, {
   message: "Passwords don't match.",
   path: ["confirm"],
