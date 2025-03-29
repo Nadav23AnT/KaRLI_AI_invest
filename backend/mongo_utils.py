@@ -31,3 +31,14 @@ def sign_in(username, password):
     if document:
         return True
     return False
+
+
+def get_user_brokerApi_credentials(username):
+    document = users_collection.find_one({"username": username})
+
+    if document:
+        return {
+            "api_key": document.get("brokerApiKey"),
+            "api_secret": document.get("brokerApiSecret")
+        }
+    return None
