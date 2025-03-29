@@ -38,11 +38,13 @@ def sign_up():
     password = data.get('password')
     age = data.get('age')
     risk_level = data.get('risk')
+    broker_api_key = data.get('brokerApiKey')
+    broker_api_secret = data.get('brokerApiSecret')
 
     if not user_name or not password or not age or risk_level not in RISK_LEVELS:
         return jsonify({"error": "Invalid input: Some fields are missing"}), 400
 
-    if mongo_utils.sign_up(user_name, password, age, risk_level):
+    if mongo_utils.sign_up(user_name, password, age, risk_level, broker_api_key, broker_api_secret):
         return jsonify(True), 200
     return jsonify({"error": "Username already exists"}), 400
 
@@ -53,7 +55,7 @@ def sign_in():
     user_name = data.get('username')
     password = data.get('password')
 
-    if mongo_utils.sing_in(user_name, password):
+    if mongo_utils.sign_in(user_name, password):
         return jsonify(True)
     return "username or password are incorrect", 401
 

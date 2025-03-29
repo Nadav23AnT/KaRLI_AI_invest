@@ -25,7 +25,7 @@ def sign_up(username, password, age, risk, broker_api_key, broker_api_secret):
     return True
 
 
-def sing_in(username, password):
+def sign_in(username, password):
     document = users_collection.find_one({"username": username, "password": password})
 
     if document:
