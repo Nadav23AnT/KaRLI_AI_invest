@@ -25,6 +25,12 @@ def sign_up():
     if not user_name or not password or not age or risk_level not in RISK_LEVELS:
         return jsonify({"error": "Invalid input: Some fields are missing"}), 400
 
+    client = create_client(broker_api_key, broker_api_secret, base_url)
+    account_info = get_account_info(client)
+
+    if account_info.get("error") is not None:
+        return jsonify({"error": "User don't have brokerAPI account"}), 400
+
     if mongo_utils.sign_up(user_name, password, age, risk_level, broker_api_key, broker_api_secret):
         return jsonify(True), 200
     return jsonify({"error": "Username already exists"}), 400
