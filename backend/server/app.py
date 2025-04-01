@@ -9,26 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 RISK_LEVELS = [risk.value for risk in RISK]
-
-# Simulated user data (Replace with database)
-USER_DATA = {
-    "itai": {"balance": 10500.75, "overallProfit": 12.3, "availableCash": 2500.00, "tradingStatus": "Active"},
-    "jane_smith": {"balance": 8900.50, "overallProfit": 9.8, "availableCash": 1800.00, "tradingStatus": "Active"}
-}
-
-# Temporary storage for Alpaca keys (replace with a DB in real app)
-USER_ALPACA_CREDS = {
-    "itai": {
-        "api_key": "PKI4K2CEOZ4WG89MFWMM",
-        "api_secret": "eaWthufyMFbTktSPDtc1zE6ZBH1dDQwGJTS3NhVZ",
-        "base_url": "https://paper-api.alpaca.markets"
-    },
-    "jane_smith": {
-        "api_key": "PKI4K2CEOZ4WG89MFWMM",
-        "api_secret": "eaWthufyMFbTktSPDtc1zE6ZBH1dDQwGJTS3NhVZ",
-        "base_url": "https://paper-api.alpaca.markets"
-    }
-}
+base_url = "https://paper-api.alpaca.markets"
 
 
 @app.route('/signUp', methods=['POST'])
@@ -38,11 +19,19 @@ def sign_up():
     password = data.get('password')
     age = data.get('age')
     risk_level = data.get('risk')
+    broker_api_key = data.get('brokerApiKey')
+    broker_api_secret = data.get('brokerApiSecret')
 
     if not user_name or not password or not age or risk_level not in RISK_LEVELS:
         return jsonify({"error": "Invalid input: Some fields are missing"}), 400
 
-    if mongo_utils.sign_up(user_name, password, age, risk_level):
+    client = create_client(broker_api_key, broker_api_secret, base_url)
+    account_info = get_account_info(client)
+
+    if account_info.get("error") is not None:
+        return jsonify({"error": "User don't have brokerAPI account"}), 400
+
+    if mongo_utils.sign_up(user_name, password, age, risk_level, broker_api_key, broker_api_secret):
         return jsonify(True), 200
     return jsonify({"error": "Username already exists"}), 400
 
@@ -53,32 +42,29 @@ def sign_in():
     user_name = data.get('username')
     password = data.get('password')
 
-    if mongo_utils.sing_in(user_name, password):
+    if mongo_utils.sign_in(user_name, password):
         return jsonify(True)
     return "username or password are incorrect", 401
 
 
 @app.route('/summary', methods=['POST'])
 def get_summary():
-    """
-    Fetch user-specific trading summary, including full Alpaca account data.
-    """
     data = request.json
     username = data.get("username")
 
-    if not username or username not in USER_ALPACA_CREDS:
+    if not username:
         return jsonify({"error": "User not found"}), 404
 
-    # Fetch Alpaca credentials and create the client
-    alpaca_creds = USER_ALPACA_CREDS[username]
-    client = create_client(alpaca_creds["api_key"], alpaca_creds["api_secret"], alpaca_creds["base_url"])
+    broker_api_credentials = mongo_utils.get_user_brokerApi_credentials(username)
 
-    # Fetch account and positions using Alpaca client
+    if broker_api_credentials is None:
+        return jsonify({"error": "Sorry, broker API credentials not found for this user."}), 404
+
+    client = create_client(broker_api_credentials["api_key"], broker_api_credentials["api_secret"], base_url)
+
     account_info = get_account_info(client)
     portfolio_history = get_portfolio_history(client)
     recent_activities = get_recent_activities(client)
-
-    # Get the most recent portfolio history values
     latest_equity = portfolio_history["equity"][-1]
     latest_profit_loss = portfolio_history["profit_loss"][-1]
     latest_profit_loss_pct = portfolio_history["profit_loss_pct"][-1]
@@ -117,6 +103,12 @@ def stop_trading():
     """
     data = request.json
     username = data.get("username")
+
+    # Simulated user data (Replace with database)
+    USER_DATA = {
+        "itai": {"balance": 10500.75, "overallProfit": 12.3, "availableCash": 2500.00, "tradingStatus": "Active"},
+        "jane_smith": {"balance": 8900.50, "overallProfit": 9.8, "availableCash": 1800.00, "tradingStatus": "Active"}
+    }
 
     if not username or username not in USER_DATA:
         return jsonify({"error": "User not found"}), 404
