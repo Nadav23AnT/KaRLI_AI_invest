@@ -30,7 +30,7 @@ def get_portfolio_history(client, days=30):
     except APIError as e:
         return {"error": str(e)}
 
-def get_recent_activities(client, activity_type=None):
+def get_recent_activities(client, activity_type=None): #TODO use "FILL" to show the client only completed buy/sell transactions
     try:
         activities = client.get_activities(activity_type) if activity_type else client.get_activities()
         return [a._raw for a in activities]

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
 import { AppSidebar } from "@/Components/app-sidebar"
-import { ChartAreaInteractive } from "@/Components/chart-area-interactive"
-import { DataTable } from "@/Components/data-table"
+// import { ChartAreaInteractive } from "@/Components/chart-area-interactive"
+import DataTable from "@/Components/data-table"
 import { SectionCards } from "@/Components/section-cards"
 import { SiteHeader } from "@/Components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
-import data from "@/app/dashboard/data.json"
+import {ActionType} from "@/types/types.tsx";
 
 export default function DashboardPage() {
   const [sectionData, setSectionData] = useState<{
@@ -29,6 +29,8 @@ export default function DashboardPage() {
     }
   } | null>(null)
 
+  const [actions, setActions] = useState<ActionType[]>([]);
+
   const username = localStorage.getItem("username")
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true"
 
@@ -49,6 +51,8 @@ export default function DashboardPage() {
           }
 
           const result = await response.json()
+
+          setActions(result.recentActivities as ActionType[])
 
           // Transform API response to match SectionCards expected props
           setSectionData({
@@ -80,11 +84,10 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               {/* Ensure data is loaded before rendering SectionCards */}
               {sectionData ? <SectionCards {...sectionData} /> : <p>Loading...</p>}
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
-            </div>
+              {/*<div className="px-4 lg:px-6">*/}
+              {/*  <ChartAreaInteractive />*/}
+              {/*</div>*/}
+              {actions.length > 0 ? <DataTable actions={actions} /> : <p>Loading...</p>}            </div>
           </div>
         </div>
       </SidebarInset>
