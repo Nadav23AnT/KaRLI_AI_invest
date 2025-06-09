@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 def start_scheduler():
-    trigger = CronTrigger(second='*/5')  # Runs every 5 seconds (for testing)
+    trigger = CronTrigger(second='*/30')  # Runs every 5 seconds (for testing)
     scheduler.add_job(daily_task, trigger, name="Daily Trading Task")
     scheduler.start()
     logger.info("Scheduler started.")
