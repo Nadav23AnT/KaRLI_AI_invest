@@ -36,3 +36,19 @@ def get_recent_activities(client, activity_type=None): #TODO use "FILL" to show 
         return [a._raw for a in activities]
     except APIError as e:
         return {"error": str(e)}
+
+
+def submit_order(client, symbol, quantity , action, type="market", time_in_force="day"):
+    try:
+        order  = client.submit_order(symbol=symbol, qty=quantity, side=action, type=type, time_in_force=time_in_force)
+        return order
+    except APIError as e:
+        return {"error": str(e)}
+
+
+def get_client_position(client, symbol):
+    try:
+        position = client.get_position(symbol)
+        return position
+    except APIError as e:
+        return {"error": str(e)}
