@@ -4,9 +4,14 @@ import requests
 import yfinance as yf
 import logging
 
+tickers = ["NVDA", "INTC", "AAPL", "AMD", "MSFT", "AMZN", "META", "NFLX",
+           "NKE", "DIS", "TSLA", "JPM", "PEP", "PFE", "BA", "RCL", "KMB",
+           "NOW", "ADBE", "GS"]
+
 from alpacaTrading import create_client
 from alpacaTrading.account import submit_order, get_client_position
-from mongo_utils import get_all_users_with_credentials
+from mongo_utils import get_all_users_with_credentials, load_stats
+from scheduler.yahooFinance import fetch_daily_ticker_data_normalised, set_daily_finance_data
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 # --- Fetch Market Data from Yahoo (if needed) ---
-def handle_new_market_data(tickers):
+def handle_new_market_data():
     print("handle_new_market_data")
-    # data = yf.download(tickers=tickers, period="1d", interval="1d")
+    data = yf.download(tickers=["AAPL"], period="1d", interval="1d")
+    print(data)
     # return data
 
 
@@ -59,25 +65,27 @@ def send_order_to_alpaca(api_key, api_secret, symbol, action):
 # --- Main Scheduled Logic ---
 def daily_task():
     logger.info("[START] Daily trading task")
-    actions = get_ticker_actions()
-    if not actions:
-        logger.info("[INFO] No actions received.")
-        return
-
-    users = get_all_users_with_credentials()
-    for user in users:
-        username = user["username"]
-        risk = user["risk"]
-        api_key = user["api_key"]
-        api_secret = user["api_secret"]
-
-        if not api_key or not api_secret:
-            logger.warning("[SKIP] Missing Alpaca credentials for %s", username)
-            continue
-
-        logger.info("[USER] %s - Risk: %s", username, risk)
-        for ticker, action in actions.items():
-            logger.info("[ACTION] %s: %s", ticker, ["", "BUY", "HOLD", "SELL"][action])
-            send_order_to_alpaca(api_key, api_secret, ticker, action)
-
-    logger.info("[END] Daily trading task")
+    set_daily_finance_data(tickers)
+    print("Done")
+    # actions = get_ticker_actions()
+    # if not actions:
+    #     logger.info("[INFO] No actions received.")
+    #     return
+    #
+    # users = get_all_users_with_credentials()
+    # for user in users:
+    #     username = user["username"]
+    #     risk = user["risk"]
+    #     api_key = user["api_key"]
+    #     api_secret = user["api_secret"]
+    #
+    #     if not api_key or not api_secret:
+    #         logger.warning("[SKIP] Missing Alpaca credentials for %s", username)
+    #         continue
+    #
+    #     logger.info("[USER] %s - Risk: %s", username, risk)
+    #     for ticker, action in actions.items():
+    #         logger.info("[ACTION] %s: %s", ticker, ["", "BUY", "HOLD", "SELL"][action])
+    #         send_order_to_alpaca(api_key, api_secret, ticker, action)
+    #
+    # logger.info("[END] Daily trading task")
