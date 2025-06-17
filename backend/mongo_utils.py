@@ -1,5 +1,4 @@
 import os
-
 from pymongo import MongoClient
 
 MONGO_URI = os.getenv("MONGO_URI",
@@ -7,7 +6,12 @@ MONGO_URI = os.getenv("MONGO_URI",
 client = MongoClient(MONGO_URI)
 db = client["KaRLi"]
 users_collection = db["users"]
+stocksDB = client["stock_data_db"]
+norm_collection = stocksDB["daily_stock_data_normalized"]
+meta_collection = stocksDB["normalization_metadata"]
 
+FEATURE_COLS = ["rsi","tsi","stochastic","roc","cci","trix",
+                "mfi","cmf","bb_percent","adx","vi_pos"]
 
 def sign_up(username, password, age, risk, broker_api_key, broker_api_secret):
     document = users_collection.find_one({"username": username})
@@ -60,3 +64,18 @@ def get_all_users_with_credentials():
         })
 
     return users
+
+def load_stats(ticker:str) -> dict:
+    stats = {d["feature"]: (d["mean"], d["std"])
+             for d in meta_collection.find({"ticker": ticker})}
+    missing = set(FEATURE_COLS) - set(stats)
+    if missing:
+        raise ValueError(f"metadata missing for {missing}")
+    return stats
+
+def insert_daily_data(tickers_data):
+    records = tickers_data.to_dict(orient='records')
+
+    if records:
+        print(records)
+        # norm_collection.insert_many(records)
