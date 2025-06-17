@@ -6,7 +6,7 @@ from Enums.risk import RISK
 from alpacaTrading import create_client, get_account_info, get_open_positions, get_open_orders, get_portfolio_history, get_recent_activities
 
 app = Flask(__name__)
-CORS(app)
+CORS(app) 
 
 RISK_LEVELS = [risk.value for risk in RISK]
 base_url = "https://paper-api.alpaca.markets"
