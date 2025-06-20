@@ -66,7 +66,9 @@ def send_order_to_alpaca(api_key, api_secret, symbol, action):
 def daily_task():
     logger.info("[START] Daily trading task")
     set_daily_finance_data(tickers)
-    print("Done")
+    print("Done fetching")
+    predict_stocks_actions(tickers)
+    print("Done getting data")
     # actions = get_ticker_actions()
     # if not actions:
     #     logger.info("[INFO] No actions received.")
