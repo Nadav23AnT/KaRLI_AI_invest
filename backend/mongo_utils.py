@@ -79,4 +79,4 @@ def insert_daily_data(tickers_data):
         norm_collection.insert_many(records)
 
 def fetch_data_for_inference(ticker: str, window_size: int = 30):
-    return norm_collection.find({"ticker": ticker}).sort("date", -1).limit(window_size-1)
+    return norm_collection.find({"ticker": ticker}).sort("date", -1).limit(window_size)
