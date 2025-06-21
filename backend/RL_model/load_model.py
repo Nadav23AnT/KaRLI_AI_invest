@@ -24,7 +24,6 @@ def build_obs(ticker:str) -> np.ndarray:
 
 def predict_stocks_actions(tickers):
     tickers_actions = []
-
     script_dir = Path(__file__).parent
     model_dir = script_dir / "best_models"
 
@@ -34,7 +33,6 @@ def predict_stocks_actions(tickers):
         print(f"load model {ticker}")
 
         obs = build_obs(ticker)
-        print("!!!!!!")
         action, _ = model.predict(obs, deterministic=True)
         action_int = int(action.item())
         label = {0: "HOLD", 1: "BUY", 2: "SELL"}[action_int]

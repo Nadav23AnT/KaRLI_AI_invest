@@ -1,40 +1,14 @@
-import os
-import time
-import requests
-import yfinance as yf
 import logging
 
-tickers = ["NVDA", "INTC", "AAPL", "AMD", "MSFT", "AMZN", "META", "NFLX",
-           "NKE", "DIS", "TSLA", "JPM", "PEP", "PFE", "BA", "RCL", "KMB",
-           "NOW", "ADBE", "GS"]
-
+from Enums.rl_variables import tickers
+from RL_model.load_model import predict_stocks_actions
 from alpacaTrading import create_client
 from alpacaTrading.account import submit_order, get_client_position
-from mongo_utils import get_all_users_with_credentials, load_stats
-from scheduler.yahooFinance import fetch_daily_ticker_data_normalised, set_daily_finance_data
+from scheduler.yahooFinance import set_daily_finance_data
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-# --- Fetch Market Data from Yahoo (if needed) ---
-def handle_new_market_data():
-    print("handle_new_market_data")
-    data = yf.download(tickers=["AAPL"], period="1d", interval="1d")
-    print(data)
-    # return data
-
-
-# --- Query Model API for Action Predictions ---
-def get_ticker_actions():
-    try:
-        response = requests.post("http://localhost:8000/get-actions")
-        response.raise_for_status()
-        return response.json()  # e.g., {"AAPL": 1, "TSLA": 3}
-    except Exception as e:
-        logger.error("Failed to fetch ticker actions: %s", e)
-        return {}
 
 
 # --- Send Orders to Alpaca ---
@@ -67,8 +41,8 @@ def daily_task():
     logger.info("[START] Daily trading task")
     set_daily_finance_data(tickers)
     print("Done fetching")
-    predict_stocks_actions(tickers)
-    print("Done getting data")
+    stocks_actions = predict_stocks_actions(tickers)
+    print(f"Done getting data {stocks_actions}")
     # actions = get_ticker_actions()
     # if not actions:
     #     logger.info("[INFO] No actions received.")
