@@ -29,7 +29,7 @@ export default function DashboardPage() {
     }
   } | null>(null)
 
-  const [actions, setActions] = useState<ActionType[]>([]);
+  const [actions, setActions] = useState<ActionType[] | null>(null);
 
   const username = localStorage.getItem("username")
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true"
@@ -87,7 +87,7 @@ export default function DashboardPage() {
               {/*<div className="px-4 lg:px-6">*/}
               {/*  <ChartAreaInteractive />*/}
               {/*</div>*/}
-              {actions.length > 0 ? <DataTable actions={actions} /> : <p>Loading...</p>}            </div>
+              {actions ? <DataTable actions={actions} /> : <p>Loading...</p>}            </div>
           </div>
         </div>
       </SidebarInset>
