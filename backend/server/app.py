@@ -89,7 +89,14 @@ def get_summary():
             "latest_timestamp": latest_timestamp
         },
         "recentActivities": [
-            {"activity_type": activity["activity_type"], "date": activity["date"], "net_amount": activity["net_amount"], "status": activity["status"]}
+            {
+                "symbol": activity["symbol"],
+                "activity_type": activity["side"],
+                "price": activity["price"],
+                "quantity": activity["qty"],
+                "date": activity["transaction_time"],
+                "status": activity["order_status"]
+            }
             for activity in recent_activities
         ]
     }
