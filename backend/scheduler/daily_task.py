@@ -1,52 +1,108 @@
 import logging
+from collections import defaultdict
+from time import sleep
+
 from Enums.rl_variables import tickers
 from RL_model.load_model import predict_stocks_actions
 from alpacaTrading import create_client
-from alpacaTrading.account import submit_order, get_client_position, get_open_positions, get_account_info
+from alpacaTrading.account import submit_order, get_open_positions, get_account_info, get_stock_latest_trade_price
 from mongo_utils import get_all_users_with_credentials
 from scheduler.yahooFinance import set_daily_finance_data
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+OVERFLOW_BUY_BUFFER = 1
 
 
-# --- Send Orders to Alpaca ---
-def send_order_to_alpaca(api_key, api_secret, symbol, action):
+def handle_model_recommendation(api_key, api_secret, action_map):
     client = create_client(api_key, api_secret)
 
-    try:
-        if action == "BUY":  # Buy
-            # submit_order(client, symbol, 1, "buy", "market", "day") #TODO decide how to sumbit buy orders using risk-level and other buy actions
-            logger.info("[ORDER] Buy %s", symbol)
+    # Get all current positions once
+    positions = {pos["symbol"]: pos for pos in get_open_positions(client)}
 
-        elif action == "SELL":  # Sell
+    # --- SELL ---
+    for symbol in action_map.get("SELL", []):
+        position = positions.get(symbol)
+        if position:
             try:
-                position = get_client_position(client, symbol)
-
-                if position:
-                    # submit_order(client, symbol, position.qty, "sell", "market", "day") #TODO check function
-                    logger.info("[ORDER] Sell %s", symbol)
+                # submit_order(
+                #     client,
+                #     symbol=symbol,
+                #     quantity=position.qty,
+                #     action="sell",
+                #     type="market",
+                #     time_in_force="day"
+                # )
+                print(f"[SELL] Submitted sell order for {symbol}, qty={position.qty}")
             except Exception as e:
-                logger.info("[SKIP] No position to sell for %s", symbol)
-        elif action == "HOLD":  # Hold
-            logger.info("[HOLD] %s", symbol)
+                print(f"[ERROR] Failed to sell {symbol}: {e}")
+        else:
+            print(f"[INFO] No position to sell for {symbol}")
+
+    # Wait for sales to settle
+    sleep(2)
+
+    # --- HOLD ---
+    for symbol in action_map.get("HOLD", []):
+        if symbol in positions:
+            print(f"[HOLD] Already holding {symbol}")
+        else:
+            print(f"[HOLD] Not holding {symbol}, fitted to HOLD")
+
+    # --- BUY ---
+    buy_tickers = action_map.get("BUY", [])
+    if not buy_tickers:
+        return
+
+    try:
+        account = get_account_info(client)
+        cash = float(account["cash"])
+        cash_per_stock = cash / len(buy_tickers)
     except Exception as e:
-        logger.error("[ERROR] Order failed for %s: %s", symbol, e)
+        print(f"[ERROR] Failed to retrieve account cash: {e}")
+        return
+
+    for symbol in buy_tickers:
+        try:
+            price = get_stock_latest_trade_price(client, symbol)
+            qty = int(cash_per_stock // price - OVERFLOW_BUY_BUFFER)
+
+            if qty <= 0:
+                print(f"[BUY] Not enough funds to buy {symbol}")
+                continue
+
+            # submit_order(
+            #     client,
+            #     symbol=symbol,
+            #     quantity=qty,
+            #     action="buy",
+            #     type="market",
+            #     time_in_force="day"
+            # )
+            print(f"[BUY] Submitted buy order for {symbol}, qty={qty}, price={price:.2f}, cash_per_stock{cash_per_stock}")
+        except Exception as e:
+            print(f"[ERROR] Failed to buy {symbol}: {e}")
 
 
 # --- Main Scheduled Logic ---
 def daily_task():
     logger.info("[START] Daily trading task")
     set_daily_finance_data(tickers)
-    print("Done fetching")
+    logger.info("Inserted new daily finance data to MongoDB")
 
     stocks_actions = predict_stocks_actions(tickers)
-    print(f"Done getting data {stocks_actions}")
+    action_map = defaultdict(list)
 
     if not stocks_actions:
-        logger.info("[INFO] No actions received.")
+        logger.warning("No actions received.")
         return
+
+    for ticker, action in stocks_actions:
+        action_map[action].append(ticker)
+    action_map = dict(action_map)
+
+    print(f"Done getting data {action_map}")
 
     users = get_all_users_with_credentials()
     for user in users:
@@ -60,9 +116,7 @@ def daily_task():
             continue
 
         logger.info("KEY: %s , SECRET: %s", api_key, api_secret)
-        logger.info("[USER] %s - Risk: %s", username, risk)
-        for ticker, action in stocks_actions:
-            logger.info("[ACTION] %s: %s", ticker, action)
-            send_order_to_alpaca(api_key, api_secret, ticker, action)
+        logger.info("USER: %s , Risk: %s", username, risk)
+        handle_model_recommendation(api_key, api_secret, action_map)
 
     logger.info("[END] Daily trading task")
