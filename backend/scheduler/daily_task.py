@@ -19,22 +19,22 @@ def handle_model_recommendation(api_key, api_secret, action_map):
     client = create_client(api_key, api_secret)
 
     # Get all current positions once
-    positions = {pos["symbol"]: pos for pos in get_open_positions(client)}
+    current_positions = {pos["symbol"]: pos for pos in get_open_positions(client)}
 
     # --- SELL ---
     for symbol in action_map.get("SELL", []):
-        position = positions.get(symbol)
+        position = current_positions.get(symbol)
         if position:
             try:
                 # submit_order(
                 #     client,
                 #     symbol=symbol,
-                #     quantity=position.qty,
+                #     quantity=position["qty"],
                 #     action="sell",
                 #     type="market",
                 #     time_in_force="day"
                 # )
-                print(f"[SELL] Submitted sell order for {symbol}, qty={position.qty}")
+                print(f"[SELL] Submitted sell order for {symbol}, qty={position["qty"]}")
             except Exception as e:
                 print(f"[ERROR] Failed to sell {symbol}: {e}")
         else:
@@ -45,7 +45,7 @@ def handle_model_recommendation(api_key, api_secret, action_map):
 
     # --- HOLD ---
     for symbol in action_map.get("HOLD", []):
-        if symbol in positions:
+        if symbol in current_positions:
             print(f"[HOLD] Already holding {symbol}")
         else:
             print(f"[HOLD] Not holding {symbol}, fitted to HOLD")
@@ -57,7 +57,11 @@ def handle_model_recommendation(api_key, api_secret, action_map):
 
     try:
         account = get_account_info(client)
-        cash = float(account["cash"])
+        left_positions = get_open_positions(client)
+        if not left_positions:
+            cash = 2 * float(account["cash"]) / 3 # if all the money is available so set only 2/3 of the money to invest
+        else:
+            cash = float(account["cash"])
         cash_per_stock = cash / len(buy_tickers)
     except Exception as e:
         print(f"[ERROR] Failed to retrieve account cash: {e}")
@@ -80,10 +84,9 @@ def handle_model_recommendation(api_key, api_secret, action_map):
             #     type="market",
             #     time_in_force="day"
             # )
-            print(f"[BUY] Submitted buy order for {symbol}, qty={qty}, price={price:.2f}, cash_per_stock{cash_per_stock}")
+            print(f"[BUY] Submitted buy order for {symbol}, qty= {qty}, price= {price:.2f}, cash_per_stock= {cash_per_stock}")
         except Exception as e:
             print(f"[ERROR] Failed to buy {symbol}: {e}")
-
 
 # --- Main Scheduled Logic ---
 def daily_task():
