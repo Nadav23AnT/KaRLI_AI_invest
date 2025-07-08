@@ -65,6 +65,11 @@ def get_summary():
     account_info = get_account_info(client)
     portfolio_history = get_portfolio_history(client)
     recent_activities = get_recent_activities(client)
+    # only include trade activities
+    filtered_trade_activities = [
+        trade_activity for trade_activity in recent_activities if trade_activity.get("activity_type") == "FILL"
+    ]
+
     latest_equity = portfolio_history["equity"][-1]
     latest_profit_loss = portfolio_history["profit_loss"][-1]
     latest_profit_loss_pct = portfolio_history["profit_loss_pct"][-1]
@@ -90,14 +95,14 @@ def get_summary():
         },
         "recentActivities": [
             {
-                "symbol": activity["symbol"],
-                "activity_type": activity["side"],
-                "price": activity["price"],
-                "quantity": activity["qty"],
-                "date": activity["transaction_time"],
-                "status": activity["order_status"]
+                "symbol": activity.get("symbol", "UNKNOWN"),
+                "activity_type": activity.get("side", "UNKNOWN"),
+                "price": activity.get("price", "UNKNOWN"),
+                "quantity": activity.get("qty", "UNKNOWN"),
+                "date": activity.get("transaction_time", "UNKNOWN"),
+                "status": activity.get("order_status", "UNKNOWN")
             }
-            for activity in recent_activities
+            for activity in filtered_trade_activities
         ]
     }
 
