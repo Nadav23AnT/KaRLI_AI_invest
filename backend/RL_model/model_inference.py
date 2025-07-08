@@ -1,11 +1,17 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
-import datetime as dt
-from stable_baselines3 import PPO
 from Enums import rl_variables
 from mongo_utils import fetch_data_for_inference
+import datetime as dt
+from pathlib import Path
+from typing import List, Tuple
+from RL_model.model_manager import ModelManager
+
+# Initialize manager once
+script_dir = Path(__file__).parent
+model_dir = script_dir / "best_models"
+model_manager = ModelManager(model_dir)
+model_manager.load_all_models()
 
 # Build today’s observation window (29 hist + 1 today)
 def build_obs(ticker:str) -> np.ndarray:
@@ -22,15 +28,14 @@ def build_obs(ticker:str) -> np.ndarray:
     return obs.reshape(1, -1)
 
 
-def predict_stocks_actions(tickers):
+def predict_stocks_actions(tickers: List[str]) -> List[Tuple[str, str]]:
     tickers_actions = []
-    script_dir = Path(__file__).parent
-    model_dir = script_dir / "best_models"
 
     for ticker in tickers:
-        model_path = model_dir / f"{ticker}_best_model"
-        model = PPO.load(model_path, device="cpu")
-        print(f"load model {ticker}")
+        model = model_manager.get_model(ticker)
+        if model is None:
+            print(f"[SKIP] No model found for {ticker}")
+            continue
 
         obs = build_obs(ticker)
         action, _ = model.predict(obs, deterministic=True)

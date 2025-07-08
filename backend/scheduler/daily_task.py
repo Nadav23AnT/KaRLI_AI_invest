@@ -3,7 +3,7 @@ from collections import defaultdict
 from time import sleep
 
 from Enums.rl_variables import tickers
-from RL_model.load_model import predict_stocks_actions
+from RL_model.model_inference import predict_stocks_actions
 from alpacaTrading import create_client
 from alpacaTrading.account import submit_order, get_open_positions, get_account_info, get_stock_latest_trade_price
 from mongo_utils import get_all_users_with_credentials
