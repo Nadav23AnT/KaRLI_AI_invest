@@ -26,14 +26,14 @@ def handle_model_recommendation(api_key, api_secret, action_map):
         position = current_positions.get(symbol)
         if position:
             try:
-                # submit_order(
-                #     client,
-                #     symbol=symbol,
-                #     quantity=position["qty"],
-                #     action="sell",
-                #     type="market",
-                #     time_in_force="day"
-                # )
+                submit_order(
+                    client,
+                    symbol=symbol,
+                    quantity=position["qty"],
+                    action="sell",
+                    type="market",
+                    time_in_force="day"
+                )
                 print(f"[SELL] Submitted sell order for {symbol}, qty={position["qty"]}")
             except Exception as e:
                 print(f"[ERROR] Failed to sell {symbol}: {e}")
@@ -58,8 +58,15 @@ def handle_model_recommendation(api_key, api_secret, action_map):
     try:
         account = get_account_info(client)
         left_positions = get_open_positions(client)
+
         if not left_positions:
             cash = 2 * float(account["cash"]) / 3 # if all the money is available so set only 2/3 of the money to invest
+
+        elif len(buy_tickers) == 1:
+            ticker = buy_tickers[0]
+            cash = 5 * float(account["cash"]) / 6
+            if len(left_positions) <= 2 and any(pos["symbol"] == ticker for pos in left_positions):
+                cash = 2 * float(account["cash"]) / 3 # if the user have 2 stocks or fewer and need to invest in one of them so only invest 2/3 of his money
         else:
             cash = float(account["cash"])
         cash_per_stock = cash / len(buy_tickers)
@@ -76,14 +83,14 @@ def handle_model_recommendation(api_key, api_secret, action_map):
                 print(f"[BUY] Not enough funds to buy {symbol}")
                 continue
 
-            # submit_order(
-            #     client,
-            #     symbol=symbol,
-            #     quantity=qty,
-            #     action="buy",
-            #     type="market",
-            #     time_in_force="day"
-            # )
+            submit_order(
+                client,
+                symbol=symbol,
+                quantity=qty,
+                action="buy",
+                type="market",
+                time_in_force="day"
+            )
             print(f"[BUY] Submitted buy order for {symbol}, qty= {qty}, price= {price:.2f}, cash_per_stock= {cash_per_stock}")
         except Exception as e:
             print(f"[ERROR] Failed to buy {symbol}: {e}")
@@ -93,6 +100,7 @@ def daily_task():
     logger.info("[START] Daily trading task")
     set_daily_finance_data(tickers)
     logger.info("Inserted new daily finance data to MongoDB")
+
 
     stocks_actions = predict_stocks_actions(tickers)
     action_map = defaultdict(list)
