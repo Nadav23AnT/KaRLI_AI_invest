@@ -1,4 +1,5 @@
 import datetime as dt, numpy as np, pandas as pd, yfinance as yf, ta
+from typing import Union
 from mongo_utils import load_stats, insert_daily_data
 
 
@@ -7,7 +8,7 @@ def _series(x):
 
 # Indicator computation + normalisation
 def fetch_daily_ticker_data_normalised(ticker:str, stats:dict,
-                             on:dt.date|None=None) -> pd.Series:
+                             on: Union[dt.date, None] = None) -> pd.Series:
     if on is None:
         on = dt.date.today()
     df = yf.download(
