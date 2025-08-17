@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import { AppSidebar } from "@/Components/app-sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 // import { ChartAreaInteractive } from "@/Components/chart-area-interactive"
-import DataTable from "@/Components/data-table"
-import HoldingsTable from "@/Components/holdings-table";
-import { SectionCards } from "@/Components/section-cards"
-import { SiteHeader } from "@/Components/site-header"
+import DataTable from "@/components/data-table"
+import HoldingsTable from "@/components/holdings-table";
+import { SectionCards } from "@/components/section-cards"
+import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import {ActionType, HoldingType} from "@/types/types.tsx";
