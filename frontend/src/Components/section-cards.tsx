@@ -78,12 +78,12 @@ export function SectionCards({
               {portfolioHistory.latest_profit_loss >= 0 ? (
                 <>
                   <IconTrendingUp />
-                  {portfolioHistory.latest_profit_loss_pct.toFixed(2)}%
+                  {portfolioHistory.latest_profit_loss_pct.toFixed(4)}%
                 </>
               ) : (
                 <>
                   <IconTrendingDown />
-                  {portfolioHistory.latest_profit_loss_pct.toFixed(2)}%
+                  {portfolioHistory.latest_profit_loss_pct.toFixed(4)}%
                 </>
               )}
             </Badge>
