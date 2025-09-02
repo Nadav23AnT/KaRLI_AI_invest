@@ -65,6 +65,13 @@ def get_summary():
     account_info = get_account_info(client)
     portfolio_history = get_portfolio_history(client)
     recent_activities = get_recent_activities(client)
+    positions = get_open_positions(client)
+
+    # only include trade activities
+    filtered_trade_activities = [
+        trade_activity for trade_activity in recent_activities if trade_activity.get("activity_type") == "FILL"
+    ]
+
     latest_equity = portfolio_history["equity"][-1]
     latest_profit_loss = portfolio_history["profit_loss"][-1]
     latest_profit_loss_pct = portfolio_history["profit_loss_pct"][-1]
@@ -89,9 +96,25 @@ def get_summary():
             "latest_timestamp": latest_timestamp
         },
         "recentActivities": [
-            {"activity_type": activity["activity_type"], "date": activity["date"], "net_amount": activity["net_amount"], "status": activity["status"]}
-            for activity in recent_activities
-        ]
+            {
+                "symbol": activity.get("symbol", "UNKNOWN"),
+                "activity_type": activity.get("side", "UNKNOWN"),
+                "price": activity.get("price", "UNKNOWN"),
+                "quantity": activity.get("qty", "UNKNOWN"),
+                "date": activity.get("transaction_time", "UNKNOWN"),
+                "status": activity.get("order_status", "UNKNOWN")
+            }
+            for activity in filtered_trade_activities
+        ],
+        "currentHoldings": [
+            {
+                "symbol": pos.get("symbol", "UNKNOWN"),
+                "side": pos.get("side", "UNKNOWN"),
+                "quantity": pos.get("qty", "UNKNOWN"),
+                "market_value": pos.get("market_value", "UNKNOWN"),
+            }
+            for pos in positions
+        ],
     }
 
     return jsonify(response), 200

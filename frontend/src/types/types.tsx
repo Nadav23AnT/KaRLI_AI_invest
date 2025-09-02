@@ -1,6 +1,16 @@
 export type ActionType = {
-    activity_type: string;
-    date: string;
-    net_amount: number;
-    status: string;
+    "symbol": string;
+    "activity_type": string;
+    "price": string;
+    "quantity": string;
+    "date": string;
+    "status": string;
+};
+
+export type HoldingType = {
+    "symbol": string;
+    "side": string;
+    "quantity": string;
+    "market_value": string;
+
 };
