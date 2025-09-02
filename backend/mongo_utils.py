@@ -12,7 +12,7 @@ norm_collection = stocksDB["daily_stock_data_normalized"]
 meta_collection = stocksDB["normalization_metadata"]
 
 
-def sign_up(username, password, age, risk, broker_api_key, broker_api_secret):
+def sign_up(username, password, age, broker_api_key, broker_api_secret):
     document = users_collection.find_one({"username": username})
 
     if document:
@@ -21,7 +21,6 @@ def sign_up(username, password, age, risk, broker_api_key, broker_api_secret):
         "username": username,
         "password": password,
         "age": age,
-        "risk_level": risk,
         "brokerApiKey": broker_api_key,
         "brokerApiSecret": broker_api_secret
     })
@@ -51,13 +50,11 @@ def get_all_users_with_credentials():
 
     for user in users_collection.find({}):
         username = user.get("username")
-        risk = user.get("risk_level")
         api_key = user.get("brokerApiKey")
         api_secret = user.get("brokerApiSecret")
 
         users.append({
             "username": username,
-            "risk": risk,
             "api_key": api_key,
             "api_secret": api_secret,
         })

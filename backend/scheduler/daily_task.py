@@ -118,7 +118,6 @@ def daily_task():
     users = get_all_users_with_credentials()
     for user in users:
         username = user["username"]
-        risk = user["risk"]
         api_key = user["api_key"]
         api_secret = user["api_secret"]
 
@@ -127,7 +126,7 @@ def daily_task():
             continue
 
         logger.info("KEY: %s , SECRET: %s", api_key, api_secret)
-        logger.info("USER: %s , Risk: %s", username, risk)
+        logger.info("USER: %s", username)
         handle_model_recommendation(api_key, api_secret, action_map)
 
     logger.info("[END] Daily trading task")

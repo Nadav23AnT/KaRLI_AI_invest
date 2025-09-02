@@ -2,13 +2,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 import mongo_utils
-from Enums.risk import RISK
-from alpacaTrading import create_client, get_account_info, get_open_positions, get_open_orders, get_portfolio_history, get_recent_activities
+from alpacaTrading import create_client, get_account_info, get_open_positions, get_portfolio_history, get_recent_activities
 
 app = Flask(__name__)
 CORS(app) 
 
-RISK_LEVELS = [risk.value for risk in RISK]
 base_url = "https://paper-api.alpaca.markets"
 
 
@@ -18,11 +16,10 @@ def sign_up():
     user_name = data.get('username')
     password = data.get('password')
     age = data.get('age')
-    risk_level = data.get('risk')
     broker_api_key = data.get('brokerApiKey')
     broker_api_secret = data.get('brokerApiSecret')
 
-    if not user_name or not password or not age or risk_level not in RISK_LEVELS:
+    if not user_name or not password or not age or not broker_api_key or not broker_api_secret:
         return jsonify({"error": "Invalid input: Some fields are missing"}), 400
 
     client = create_client(broker_api_key, broker_api_secret, base_url)
@@ -31,7 +28,7 @@ def sign_up():
     if account_info.get("error") is not None:
         return jsonify({"error": "User don't have brokerAPI account"}), 400
 
-    if mongo_utils.sign_up(user_name, password, age, risk_level, broker_api_key, broker_api_secret):
+    if mongo_utils.sign_up(user_name, password, age, broker_api_key, broker_api_secret):
         return jsonify(True), 200
     return jsonify({"error": "Username already exists"}), 400
 
@@ -139,10 +136,6 @@ def stop_trading():
     USER_DATA[username]["tradingStatus"] = "Stopped"
     return jsonify({"message": "Trading has been stopped!", "tradingStatus": "Stopped"}), 200
 
-
-@app.route("/risks", methods=["GET"])
-def get_risk_levels():
-    return jsonify({"risks": RISK_LEVELS})
 
 
 if __name__ == '__main__':
