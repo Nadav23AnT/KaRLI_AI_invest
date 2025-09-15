@@ -1,6 +1,9 @@
 # alpaca_account_utils/__init__.py
 
-from .client import create_client
+from .client import (
+    create_client,
+    create_stock_historical_data_client,
+)
 from .account import (
     get_account_info,
     get_open_positions,

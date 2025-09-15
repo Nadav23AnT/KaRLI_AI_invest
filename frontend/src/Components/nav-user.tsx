@@ -23,8 +23,8 @@ export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
+    name: string | null
+    email: string | null
   }
 }) {
   const navigate = useNavigate();

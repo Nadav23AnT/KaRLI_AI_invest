@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../../enums';
 import "./homePage.css";
 
 interface SummaryData {
@@ -30,7 +29,7 @@ export default function HomePage() {
     // Fetch summary data for the logged-in user
     useEffect(() => {
         if (isAuthenticated && username) {
-            fetch(`${API_BASE_URL}/summary`, {
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/summary`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username })
@@ -48,7 +47,7 @@ export default function HomePage() {
     }, [isAuthenticated, username]);
 
     const handleStopTrading = () => {
-        fetch(`${API_BASE_URL}/stop-trading`, {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/stop-trading`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username })

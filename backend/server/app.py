@@ -22,7 +22,7 @@ def sign_up():
     if not user_name or not password or not age or not broker_api_key or not broker_api_secret:
         return jsonify({"error": "Invalid input: Some fields are missing"}), 400
 
-    client = create_client(broker_api_key, broker_api_secret, base_url)
+    client = create_client(broker_api_key, broker_api_secret)
     account_info = get_account_info(client)
 
     if account_info.get("error") is not None:
@@ -57,13 +57,14 @@ def get_summary():
     if broker_api_credentials is None:
         return jsonify({"error": "Sorry, broker API credentials not found for this user."}), 404
 
-    client = create_client(broker_api_credentials["api_key"], broker_api_credentials["api_secret"], base_url)
+    client = create_client(broker_api_credentials["api_key"], broker_api_credentials["api_secret"])
 
     account_info = get_account_info(client)
     portfolio_history = get_portfolio_history(client)
     recent_activities = get_recent_activities(client)
     positions = get_open_positions(client)
 
+    print(f'{recent_activities=}')
     # only include trade activities
     filtered_trade_activities = [
         trade_activity for trade_activity in recent_activities if trade_activity.get("activity_type") == "FILL"

@@ -8,10 +8,10 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/Components/ui/table";
+} from "@/components/ui/table";
 import { ActionType } from "@/types/types.tsx";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/Components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const DataTable = ({ actions }: { actions: ActionType[] }) => {
   const [currentPage, setCurrentPage] = React.useState(1);

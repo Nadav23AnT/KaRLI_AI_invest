@@ -1,59 +1,74 @@
 # alpaca_account_utils/account.py
 
+from alpaca.trading.client import TradingClient 
+from alpaca.data.historical.stock import StockHistoricalDataClient
+from alpaca.data.requests import StockLatestTradeRequest
+from alpaca.trading.enums import QueryOrderStatus, OrderSide, OrderType, TimeInForce
+from alpaca.trading.requests import GetOrdersRequest, GetPortfolioHistoryRequest, OrderRequest
+
 from alpaca_trade_api.rest import APIError
 
-def get_account_info(client):
+def get_account_info(client: TradingClient):
     try:
-        account = client.get_account()
-        return account._raw
+        return client.get_account()
     except APIError as e:
         return {"error": str(e)}
 
-def get_open_positions(client):
+def get_open_positions(client: TradingClient):
     try:
-        positions = client.list_positions()
-        return [p._raw for p in positions]
+        return client.get_all_positions()
     except APIError as e:
         return {"error": str(e)}
 
-def get_open_orders(client):
+def get_open_orders(client: TradingClient):
     try:
-        orders = client.list_orders(status='open')
-        return [o._raw for o in orders]
+        return client.get_orders(filter=GetOrdersRequest(status=QueryOrderStatus.CLOSED))
     except APIError as e:
         return {"error": str(e)}
 
-def get_portfolio_history(client, days=30):
+def get_portfolio_history(client: TradingClient, days=30):
     try:
-        history = client.get_portfolio_history(period=f"{days}D")
-        return history._raw
+        return client.get_portfolio_history(history_filter=GetPortfolioHistoryRequest(period=f"{days}D"))
     except APIError as e:
         return {"error": str(e)}
 
-def get_recent_activities(client, activity_type=None): #TODO use "FILL" to show the client only completed buy/sell transactions
+def get_recent_activities(client: TradingClient, activity_type=None): #TODO use "FILL" to show the client only completed buy/sell transactions
     try:
-        activities = client.get_activities(activity_type) if activity_type else client.get_activities()
-        return [a._raw for a in activities]
+        # They have not defined a function for getting activities in the new trading python SDK
+        return client.get(
+            "/account/activities" + (("?activity_types=" + activity_type) if activity_type else "")
+        )
     except APIError as e:
         return {"error": str(e)}
 
-def submit_order(client, symbol, quantity , action, type="market", time_in_force="day"):
+def submit_order(
+        client: TradingClient,
+        symbol: str,
+        quantity: float,
+        action: OrderSide,
+        type=OrderType.MARKET,
+        time_in_force=TimeInForce.DAY):
     try:
-        order  = client.submit_order(symbol=symbol, qty=quantity, side=action, type=type, time_in_force=time_in_force)
+        order = client.submit_order(order_data=OrderRequest(
+            symbol=symbol,
+            qty=quantity,
+            side=action,
+            type=type,
+            time_in_force=time_in_force
+        ))
         return order
     except APIError as e:
         return {"error": str(e)}
 
-def get_client_position(client, symbol):
+def get_client_position(client: TradingClient, symbol):
     try:
-        position = client.get_position(symbol)
-        return position
+        return client.get_open_position(symbol)
     except APIError as e:
         return {"error": str(e)}
 
-def get_stock_latest_trade_price(client, symbol):
+def get_stock_latest_trade_price(client: StockHistoricalDataClient, symbol) -> float:
     try:
-        latest_trade = client.get_latest_trade(symbol)
-        return latest_trade.p
+        response = client.get_stock_latest_trade(request_params=StockLatestTradeRequest(symbol_or_symbols=symbol))
+        return response.get(symbol).price
     except APIError as e:
         return {"error": str(e)}
