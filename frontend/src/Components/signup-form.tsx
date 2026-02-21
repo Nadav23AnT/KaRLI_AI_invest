@@ -40,7 +40,6 @@ export function SignupForm({
       password: "",
       confirm: "",
       age: 0,
-      risk: "",
       brokerApiKey: "",
       brokerApiSecret: "",
     },
@@ -112,31 +111,6 @@ export function SignupForm({
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="risk"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Risk Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select trading risk level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                      This helps us find trading strategies that suit you best.{" "}
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

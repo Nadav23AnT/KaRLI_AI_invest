@@ -14,9 +14,6 @@ export const signupFormSchema = z.object({
   }).gte(18, {
     message: "Must be 18+ years old.",
   }),
-  risk: z.string({
-    required_error: "Please select risk level."
-  }),
   brokerApiKey: z.string().min(1, {
     message: "Broker API Key is required.",
   }),

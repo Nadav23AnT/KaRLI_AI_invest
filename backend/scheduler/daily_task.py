@@ -1,10 +1,11 @@
 import logging
 from collections import defaultdict
 from time import sleep
+from alpaca.trading.enums import OrderSide, OrderType, TimeInForce
 
 from Enums.rl_variables import tickers
 from RL_model.model_inference import predict_stocks_actions
-from alpacaTrading import create_client
+from alpacaTrading import create_client, create_stock_historical_data_client
 from alpacaTrading.account import submit_order, get_open_positions, get_account_info, get_stock_latest_trade_price
 from mongo_utils import get_all_users_with_credentials
 from scheduler.yahooFinance import set_daily_finance_data
@@ -17,6 +18,7 @@ OVERFLOW_BUY_BUFFER = 1
 
 def handle_model_recommendation(api_key, api_secret, action_map):
     client = create_client(api_key, api_secret)
+    stock_historical_data_client = create_stock_historical_data_client(api_key, api_secret)
 
     # Get all current positions once
     current_positions = {pos["symbol"]: pos for pos in get_open_positions(client)}
@@ -30,11 +32,11 @@ def handle_model_recommendation(api_key, api_secret, action_map):
                     client,
                     symbol=symbol,
                     quantity=position["qty"],
-                    action="sell",
-                    type="market",
-                    time_in_force="day"
+                    action=OrderSide.SELL,
+                    type=OrderType.MARKET,
+                    time_in_force=TimeInForce.DAY,
                 )
-                print(f"[SELL] Submitted sell order for {symbol}, qty={position["qty"]}")
+                print(f"[SELL] Submitted sell order for {symbol}, qty={position['qty']}")
             except Exception as e:
                 print(f"[ERROR] Failed to sell {symbol}: {e}")
         else:
@@ -76,7 +78,7 @@ def handle_model_recommendation(api_key, api_secret, action_map):
 
     for symbol in buy_tickers:
         try:
-            price = get_stock_latest_trade_price(client, symbol)
+            price = get_stock_latest_trade_price(stock_historical_data_client, symbol)
             qty = int(cash_per_stock // price - OVERFLOW_BUY_BUFFER)
 
             if qty <= 0:
@@ -87,9 +89,9 @@ def handle_model_recommendation(api_key, api_secret, action_map):
                 client,
                 symbol=symbol,
                 quantity=qty,
-                action="buy",
-                type="market",
-                time_in_force="day"
+                action=OrderSide.BUY,
+                type=OrderType.MARKET,
+                time_in_force=TimeInForce.DAY,
             )
             print(f"[BUY] Submitted buy order for {symbol}, qty= {qty}, price= {price:.2f}, cash_per_stock= {cash_per_stock}")
         except Exception as e:
@@ -118,7 +120,6 @@ def daily_task():
     users = get_all_users_with_credentials()
     for user in users:
         username = user["username"]
-        risk = user["risk"]
         api_key = user["api_key"]
         api_secret = user["api_secret"]
 
@@ -127,7 +128,7 @@ def daily_task():
             continue
 
         logger.info("KEY: %s , SECRET: %s", api_key, api_secret)
-        logger.info("USER: %s , Risk: %s", username, risk)
+        logger.info("USER: %s", username)
         handle_model_recommendation(api_key, api_secret, action_map)
 
     logger.info("[END] Daily trading task")

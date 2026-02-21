@@ -15,7 +15,6 @@ function SignUpPage() {
           username: values.username,
           password: values.password,
           age: values.age,
-          risk: values.risk,
           brokerApiKey: values.brokerApiKey,
           brokerApiSecret: values.brokerApiSecret,
         }),
