@@ -6,7 +6,7 @@ import {
   IconReport,
 } from "@tabler/icons-react"
 
-import { NavUser } from "@/components/nav-user"
+import { NavUser } from "@/Components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/Components/ui/sidebar"
 
 const data = {
   user: {

@@ -7,7 +7,7 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table";
+} from "@/Components/ui/table";
 import {HoldingType} from "@/types/types.tsx"; // Adjust the import based on your project structure
 
 const DataTable = ({ holdings }: { holdings: HoldingType[] }) => {

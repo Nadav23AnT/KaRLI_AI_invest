@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { SignupForm } from "@/components/signup-form"
+import { SignupForm } from "@/Components/signup-form"
 import { signupFormSchema } from "@/schemas/signup-form-schema"
 import { useNavigate } from "react-router-dom"
 
