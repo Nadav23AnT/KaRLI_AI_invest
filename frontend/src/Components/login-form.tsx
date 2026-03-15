@@ -5,8 +5,8 @@ import { z } from "zod"
 import { ChartNoAxesCombined } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/Components/ui/button"
+import { Input } from "@/Components/ui/input"
 import {
   Form,
   FormControl,
@@ -14,7 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/Components/ui/form"
 
 import { loginFormSchema } from "@/schemas/login-form-schema"
 

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/Components/login-form"
 import { loginFormSchema } from "@/schemas/login-form-schema"
 
 import { useNavigate } from "react-router-dom"
